@@ -59,3 +59,52 @@ Vehicle-Telemetry-and-Fault-Monitoring-System/
 │   └── requirements.txt     \# Proje bağımlılıkları (pytest)  
 ├── .gitignore               \# Git takibine alınmayacak dosyalar (.venv vb.)  
 └── README.md                \# Proje ana dokümantasyonu  
+# 🛠️ Daily Progress Log
+
+## 4. Gün: Araç State Machine, Normal Sürüş Simülasyonu ve CAN Bus Mantığı
+
+### 📌 Konu Özeti & Öğrenilenler
+- **State Machine Architecture:** Araç durumları (`OFF`, `IGNITION_ON`, `ENGINE_RUNNING`, `DRIVING`, `SHUTDOWN`) ve durumlar arası geçiş kuralları (`Guard Conditions`) kurgulandı.
+- **Deterministik Simülasyon:** Rastgele veri üretimi yerine `normal_drive.json` senaryo dosyası üzerinden adım adım çalışan sürüş simülatörü geliştirildi.
+- **Birim Testler (`pytest`):** RPM sıfırlanması, gaz-hız/RPM tutarlılığı ve deterministik çalışma kabul kriterleri doğrulandı.
+
+---
+
+### 🟢 JSON ve YAML Farkları
+| Özellik | JSON (JavaScript Object Notation) | YAML (YAML Ain't Markup Language) |
+| :--- | :--- | :--- |
+| **Sözdizimi** | Süslü `{}` ve köşeli `[]` parantezler | Girintiler (Indentation / Tab-Space) |
+| **Okunabilirlik** | Makine/API odaklı | İnsan odaklı, daha temiz |
+| **Yorum Satırı** | Desteklemez | Destekler (`#`) |
+| **Kullanım Alanı** | REST API'ler, Telemetri verisi | Konfigürasyon, CI/CD, Simülasyon senaryoları |
+
+---
+
+### 🚗 CAN Bus Haberleşme Hızı ve Hat Uzunluğu İlişkisi
+- **CAN Hızı Neye Göre Değişir?**
+  - **High-Speed CAN (ISO 11898-2):** 500 kbps – 1 Mbps (Motor, ABS, ESP gibi kritik ECU'larda).
+  - **Low-Speed CAN (ISO 11898-3):** 125 kbps'e kadar (Karakoser, klima gibi konfor sistemlerinde).
+  - **CAN FD:** 5 Mbps+ (Büyük veri paketleri için).
+
+- **Hat Uzunluğunun Hıza Etkisi:**
+  - Baud Rate (Hız) arttıkça sinyalin kablo üzerindeki **gecikme süresi (Propagation Delay)** nedeniyle maksimum **Hat Uzunluğu zorunlu olarak düşer**.
+  
+| Baud Rate (Hız) | Maksimum Bus Uzunluğu |
+| :--- | :--- |
+| **1 Mbit/s** | ~25 - 40 metre |
+| **500 kbit/s** | ~100 metre |
+| **250 kbit/s** | ~250 metre |
+| **125 kbit/s** | ~500 metre |
+
+---
+
+### 💻 4. Gün Modül Yapısı
+```text
+vehicle-simulator/
+└── day-4-app/
+    ├── config/
+    │   └── normal_drive.json    # Sürüş senaryo adımları
+    ├── exceptions.py            # Hata sınıfları
+    ├── state_machine.py         # Araç durum makinesi ve fiziksel kurallar
+    ├── test_state_machine.py    # Pytest ile kabul kriteri testleri
+    └── main.py                  # Senaryoyu ekrana canlı tablo olarak basan script
