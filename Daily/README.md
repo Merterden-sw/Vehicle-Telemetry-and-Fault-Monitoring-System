@@ -98,13 +98,41 @@ Vehicle-Telemetry-and-Fault-Monitoring-System/
 
 ---
 
-### 💻 4. Gün Modül Yapısı
+## 5. Gün: Sanal ECU'lar, Modüler Mimariler ve Periyodik CAN Mesaj Üretimi
+
+### 📌 1. Öğrenim Hedefleri ve Mimari Kavramlar
+- **Modüler Tasarım ve Single Responsibility Principle:** Araç sistemleri tek parça kod yerine sorumluluk alanlarına göre ayrılmış sanal ECU'lar (Powertrain, Body, Diagnostic) şeklinde tasarlandı.
+- **Periyodik Mesaj Döngüsü (Task Period & Message Cycle):** CAN ağındaki veri trafiğini yönetmek için mesaj türlerine göre zaman aralıkları (100 ms, 500 ms, 1000 ms) tanımlandı.
+- **Zaman Damgası ve Canlılık Sayacı (Timestamp & Alive Counter):** Paketlere `time.time()` eklenerek gecikmeler izlendi; `0-15` arası döner sayaç ile verinin donmadığı doğrulandı.
+
+---
+
+### 📡 2. CAN Standard ID vs Extended ID
+| Özellik | Standard CAN (CAN 2.0A) | Extended CAN (CAN 2.0B / SAE J1939) |
+| :--- | :--- | :--- |
+| **ID Uzunluğu** | **11-bit** | **29-bit** |
+| **Kombinasyon Sayısı** | $2^{11} = 2.048$ farklı mesaj ID'si | $2^{29} \approx 536.870.912$ farklı mesaj ID'si |
+| **Kullanım Alanı** | Gerçek zamanlı motor, fren, şanzıman haberleşmesi | OBD-II teşhis (Diagnostic) mesajları, ağır vasıta sistemleri |
+| **Örnek Mesaj ID** | `0x100`, `0x123` | `0x18DAF110` |
+
+---
+
+### 👤 3. Özel CAN Mesaj ve Sinyal Tanımı
+- **Mesaj Adı:** `MERT_INFO`
+- **CAN ID:** `0x123` *(Standard 11-bit ID)*
+- **Sinyaller:**
+  1. `Age`: Geliştiricinin yaş verisi *(8-bit Unsigned Integer)*.
+  2. `Developer`: Geliştirici metin bilgisi ("Mert").
+  3. `AliveCounter`: Her gönderimde 0-15 arası artan periyodik sayaç.
+
+---
+
+### 🏗️ 4. Sanal ECU Uygulama Mimarisi ve Periyot Tablosu
+
 ```text
-vehicle-simulator/
-└── day-4-app/
-    ├── config/
-    │   └── normal_drive.json    # Sürüş senaryo adımları
-    ├── exceptions.py            # Hata sınıfları
-    ├── state_machine.py         # Araç durum makinesi ve fiziksel kurallar
-    ├── test_state_machine.py    # Pytest ile kabul kriteri testleri
-    └── main.py                  # Senaryoyu ekrana canlı tablo olarak basan script
+ Zaman (ms) ───►  0ms      100ms     200ms     ...     500ms     ...     1000ms
+                  │        │         │                 │                 │
+PowertrainStatus  ├───────►├────────►├────────────────►├────────────────►│ (100 ms)
+PedalStatus       ├───────►├────────►├────────────────►├────────────────►│ (100 ms)
+BodyStatus        ├───────────────────────────────────►│                 │ (500 ms)
+DiagnosticStatus  ├─────────────────────────────────────────────────────►│ (1000 ms)
