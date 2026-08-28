@@ -136,3 +136,33 @@ PowertrainStatus  ├───────►├────────►├�
 PedalStatus       ├───────►├────────►├────────────────►├────────────────►│ (100 ms)
 BodyStatus        ├───────────────────────────────────►│                 │ (500 ms)
 DiagnosticStatus  ├─────────────────────────────────────────────────────►│ (1000 ms)
+---
+
+## 6. Gün: PCAN-USB Sürücü Kurulumu, Donanım Testi ve DBC ile Sinyal Anlamlandırma
+
+### 📌 1. Öğrenim Hedefleri ve Mimari Kavramlar
+- **MacCAN & PCBUSB Library:** macOS üzerinde PEAK PCAN-USB donanımının çalışabilmesi için sürücü/kütüphane altyapısı incelendi ve Mac mimarisine entegrasyonu sağlandı.
+- **DBC (CAN Database) Tanımlaması:** Ham CAN hex verilerini mühendislik birimlerine (RPM, km/h, Yaş) dönüştüren `.dbc` matrisi tasarlandı.
+- **PCAN-View & Signal Decoding:** Gönderilen ham CAN çerçevelerinin (Frames) PCAN-View veya Vector CANalyzer arayüzlerinde DBC import edilerek anlamlandırılması sağlandı.
+
+---
+
+### 📡 2. Tasarlanan DBC Sinyal Matrisi (`vehicle_telemetry.dbc`)
+- **`MERT_INFO` (ID: 0x123 / 291):**
+  - `Age`: 8-bit Unsigned Integer (Offset: 0, Factor: 1) -> Sürücü/Geliştirici yaş bilgisi.
+  - `AliveCounter`: 4-bit Counter -> Canlılık kontrolü.
+- **`PowertrainStatus` (ID: 0x100 / 256):**
+  - `EngineSpeed`: 16-bit (Factor: 0.25) -> Motor Devri (rpm).
+  - `VehicleSpeed`: 16-bit (Factor: 0.01) -> Araç Hızı (km/h).
+- **`DiagnosticStatus` (ID: 0x18DAF110):**
+  - Extended 29-bit arıza ve teşhis sinyalleri.
+
+---
+
+### 💻 6. Gün Modül Yapısı
+```text
+vehicle-simulator/
+└── day-6-app/
+    ├── dbc/
+    │   └── vehicle_telemetry.dbc   # CAN mesaj ve sinyal DBC matrisi
+    └── main.py                     # PCAN/DBC sinyal gönderim ve simülasyon scripti
