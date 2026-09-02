@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# Ev dizini (~) bu deponun calisma agaci oldugu icin bu dosya "izin listesi"
+# mantigiyla yazilmistir: once her sey yok sayilir, sonra yalnizca projeye ait
+# yollar geri alinir.
+#
+# Amac: yanlislikla `git add -A` calistirilsa bile .ssh/, Library/, Downloads/
+# gibi dizinlerin staging alanina girmesi yapisal olarak imkansiz olsun.
+#
+# Yeni bir klasoru izlemek isterseniz 2. bolume `!/klasor-adi/` satiri ekleyin;
+# aksi halde git onu gormezden gelir.
+# ---------------------------------------------------------------------------
+
+# --- 1) Ust seviyedeki her seyi yok say ------------------------------------
+/*
+
+# --- 2) Yalnizca bu yollara izin ver ---------------------------------------
+!/.gitignore
+!/Daily/
+!/vehicle-simulator
+
+# --- 3) Izin verilen yollarin icindeki istenmeyen dosyalar -----------------
+# Not: halihazirda izlenen dosyalar bu kurallardan etkilenmez; kural yalnizca
+# bundan sonra olusacak yeni dosyalar icin gecerlidir.
+.DS_Store
+Thumbs.db
+*.swp
+*~
